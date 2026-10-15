@@ -1,0 +1,127 @@
+# -*- coding: utf-8 -*-
+"""Genera las páginas web del material psicoeducativo (índice + 3 documentos)."""
+from pathlib import Path
+import html
+
+W = Path(__file__).resolve().parent
+
+CSS = """
+/* Layout: una columna de lectura, cabecera corta, fondo papel claro */
+:root{--bg:#f7f5f0;--fg:#1f2a2e;--muted:#5c6b70;--accent:#1f6f78;--line:#d9d4c8;--card:#ffffff;
+ --ff-display:"Source Serif 4",Georgia,"Times New Roman",serif;--ff-body:"Source Sans 3","Helvetica Neue",Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15191b;--fg:#e8e6e0;--muted:#a3adb1;--accent:#6fc3cc;--line:#2e3639;--card:#1d2225;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15191b;--fg:#e8e6e0;--muted:#a3adb1;--accent:#6fc3cc;--line:#2e3639;--card:#1d2225;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--ff-body);font-size:17px;line-height:1.55;
+ padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+main{max-width:46rem;margin:0 auto}
+.eyebrow{font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:20px 0 4px}
+h1{font-family:var(--ff-display);font-weight:600;font-size:1.75rem;line-height:1.2;margin:0 0 6px;text-wrap:balance}
+h2{font-family:var(--ff-display);font-weight:600;font-size:1.25rem;margin:1.6em 0 .4em;text-wrap:balance}
+p{margin:0 0 .9em;max-width:65ch}
+.sub{color:var(--muted);font-style:italic;margin-bottom:1.4em}
+.src{color:var(--muted);font-size:.9rem}
+a{color:var(--accent)}
+.lista{display:grid;gap:14px;margin-top:20px}
+.item{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;text-decoration:none;color:var(--fg)}
+.item strong{display:block;font-size:1.1rem;margin-bottom:4px;color:var(--accent)}
+.item span{color:var(--muted);font-size:.95rem}
+.pag{display:grid;gap:10px;margin-top:16px}
+.pag img{width:100%;max-width:100%;height:auto;display:block;border:1px solid var(--line);background:#fff}
+table{border-collapse:collapse;width:100%;font-size:.95rem;margin:.4em 0 1em}
+.tabla{overflow-x:auto}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--card)}
+td:first-child{font-weight:600}
+.aviso{border-left:4px solid var(--accent);padding:10px 14px;background:var(--card);margin:1.2em 0}
+footer{margin-top:40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:12px}
+"""
+
+HEAD = ('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
+        '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600&family=Source+Sans+3:wght@400;600&display=swap">')
+FOOT = '<footer>CSMC Raíces Maule · Dr. Humberto Escobar Guimay, médico psiquiatra. Material informativo; no reemplaza la evaluación de su equipo tratante.</footer>'
+
+
+def page(title, body, standalone=True):
+    head = (f'<!doctype html><html lang="es"><head>{HEAD}<title>{html.escape(title)}</title><style>{CSS}</style></head><body>'
+            if standalone else
+            f'<title>{html.escape(title)}</title><meta name="claude:viewport-fit-sides" content="cover"><style>{CSS}</style>')
+    tail = '</body></html>' if standalone else ''
+    return f'{head}<main>{body}{FOOT}</main>{tail}'
+
+
+def imagenes(prefix, n):
+    return '<div class="pag">' + ''.join(
+        f'<img src="img/{prefix}_{i:02d}.jpg" alt="Página {i}" loading="{"eager" if i <= 2 else "lazy"}">' for i in range(1, n + 1)) + '</div>'
+
+
+# ---------- índice (la página del artifact) ----------
+indice = page('Material psicoeducativo', '''
+<p class="eyebrow">CSMC Raíces Maule</p>
+<h1>Material psicoeducativo</h1>
+<p class="sub">Guías para pacientes y familiares. Se abren en el celular, no piden datos.</p>
+<div class="lista">
+<a class="item" href="guia-tlp.html"><strong>Para pacientes</strong>Trastorno de personalidad límite: ¿qué debería saber?<br><span>Escuela de Psicología UC y Fundación PsiConecta · 26 páginas</span></a>
+<a class="item" href="manual-familiares.html"><strong>Para familiares y cuidadores</strong>Manual para familiares (o cuidadores) de personas con trastorno de personalidad<br><span>Escuela de Psicología UC, Fundación PsiConecta y MIDAP · 23 páginas</span></a>
+<a class="item" href="bipolar-limite.html"><strong>Bipolar o límite</strong>Trastorno bipolar y trastorno de personalidad límite: en qué se parecen y en qué se diferencian<br><span>CSMC Raíces Maule · 5 minutos de lectura</span></a>
+</div>''', standalone=False)
+
+tlp = page('TLP: ¿qué debería saber?', '''
+<p class="eyebrow"><a href="index.html">Material psicoeducativo</a> · Para pacientes</p>
+<h1>Trastorno de personalidad límite: ¿qué debería saber?</h1>
+<p class="src">Guía creada en la Escuela de Psicología de la Pontificia Universidad Católica de Chile con Fundación PsiConecta, con retroalimentación de 59 personas diagnosticadas. Se reproduce completa; deslice para leer.</p>
+''' + imagenes('tlp', 26))
+
+fam = page('Manual para familiares', '''
+<p class="eyebrow"><a href="index.html">Material psicoeducativo</a> · Para familiares y cuidadores</p>
+<h1>Manual para familiares (o cuidadores) de personas con trastorno de personalidad</h1>
+<p class="src">Candice Fischer, Paulina Soto y Paula Errázuriz. Escuela de Psicología UC, Fundación PsiConecta y MIDAP. Se reproduce completo; deslice para leer.</p>
+''' + imagenes('fam', 23))
+
+bip = page('Bipolar o límite', '''
+<p class="eyebrow"><a href="index.html">Material psicoeducativo</a> · Bipolar o límite</p>
+<h1>Trastorno bipolar y trastorno de personalidad límite</h1>
+<p class="sub">En qué se parecen y en qué se diferencian</p>
+<p>Estas dos condiciones se confunden con frecuencia, incluso entre profesionales de salud, porque en ambas hay cambios de ánimo intensos e impulsividad. Sin embargo, son distintas, se tratan de manera distinta, y entender la diferencia le ayudará a aprovechar mejor su tratamiento. Este material es informativo: el diagnóstico lo hace su equipo tratante en la consulta, no un cuestionario en internet ni un video en redes sociales.</p>
+<h2>Una idea para empezar: el clima y el tiempo</h2>
+<p>El ánimo se parece al clima de una estación del año: dura días o semanas y tiñe todo lo que vivimos. Las emociones se parecen al tiempo de cada día: cambian en horas, según lo que va pasando. En el trastorno bipolar se altera el clima. En el trastorno de personalidad límite el clima de fondo puede ser normal, pero el tiempo cambia de forma brusca e intensa, sobre todo frente a lo que ocurre con otras personas.</p>
+<h2>¿Qué es el trastorno bipolar?</h2>
+<p>Es una condición del ánimo que se presenta en episodios. Hay períodos de depresión y períodos de ánimo anormalmente elevado o irritable. Cuando el ánimo elevado dura al menos una semana, o es tan intenso que requiere hospitalización, se llama manía. Cuando es más leve y dura al menos cuatro días, se llama hipomanía.</p>
+<p>Durante un episodio elevado la persona necesita dormir mucho menos y aun así no se siente cansada, tiene más energía, habla rápido, las ideas se aceleran, inicia muchos proyectos y puede gastar dinero o tomar decisiones arriesgadas. Muchas veces no se da cuenta de que algo está mal, porque se siente mejor que nunca.</p>
+<p>Entre un episodio y otro, la persona suele volver a ser como es habitualmente. Los episodios pueden aparecer sin un motivo claro, aunque el estrés y la falta de sueño pueden desencadenarlos. Tiene un componente biológico y hereditario importante.</p>
+<h2>¿Qué es el trastorno de personalidad límite?</h2>
+<p>Es una forma persistente de sentir, pensar y relacionarse con los demás, que suele comenzar en la adolescencia o en la adultez temprana. Las emociones se encienden rápido, con mucha intensidad, y tardan en volver a la calma. Los cambios duran horas, a veces uno o dos días, y casi siempre se desencadenan por algo que ocurre con otra persona: una crítica, un mensaje sin respuesta, el temor a ser dejado de lado.</p>
+<p>Otras características frecuentes son las relaciones intensas que oscilan entre idealizar y desvalorizar a la otra persona, una sensación persistente de vacío, una imagen de sí mismo cambiante e insegura, impulsividad (gastos, comida, alcohol o drogas, conductas de riesgo), rabia intensa difícil de controlar, y autolesiones o ideas de muerte en los momentos de crisis.</p>
+<p>Se origina en la combinación de una sensibilidad emocional de base con experiencias de vida, en especial ambientes donde las emociones no fueron comprendidas o donde hubo experiencias dolorosas. No es manipulación ni falta de voluntad.</p>
+<h2>En qué se parecen</h2>
+<p>En ambos hay cambios de ánimo intensos, impulsividad, irritabilidad, dificultades en las relaciones y en el trabajo, y riesgo de autolesiones. Por eso es común que una persona con trastorno de personalidad límite haya recibido antes un diagnóstico de trastorno bipolar, o al revés.</p>
+<h2>En qué se diferencian</h2>
+<div class="tabla"><table>
+<tr><th></th><th>Trastorno bipolar</th><th>Personalidad límite</th></tr>
+<tr><td>Cuánto duran los cambios</td><td>Días a semanas</td><td>Horas; rara vez más de dos o tres días</td></tr>
+<tr><td>Qué los desencadena</td><td>Pueden aparecer sin motivo claro</td><td>Casi siempre algo que pasa con otra persona</td></tr>
+<tr><td>El sueño</td><td>En la fase elevada duerme muy poco y no se cansa</td><td>Duerme mal y queda agotado</td></tr>
+<tr><td>Entre episodios</td><td>Vuelve a ser como es habitualmente</td><td>Las dificultades están presentes casi siempre</td></tr>
+<tr><td>Sensación de vacío</td><td>No es característica</td><td>Frecuente y persistente</td></tr>
+<tr><td>Imagen de sí mismo</td><td>Estable fuera de los episodios</td><td>Cambiante e insegura</td></tr>
+<tr><td>Tratamiento principal</td><td>Medicamentos estabilizadores del ánimo</td><td>Psicoterapia especializada</td></tr>
+</table></div>
+<p>Dos preguntas ayudan a distinguirlos. Cuando le cambia el ánimo, ¿cuánto le dura: horas o semanas? ¿Aparece por algo que pasó con alguien, o llega solo? Llevar un registro diario del ánimo durante algunas semanas, y llevarlo a la consulta, es una de las herramientas más útiles para responderlas.</p>
+<h2>¿Pueden darse juntos?</h2>
+<p>Sí. Aproximadamente una de cada cinco personas con trastorno de personalidad límite tiene además un trastorno bipolar. En ese caso se tratan ambos: el bipolar con medicamentos y el límite con psicoterapia.</p>
+<h2>Cómo se tratan</h2>
+<p>En el trastorno bipolar la base del tratamiento son los estabilizadores del ánimo, como el litio, el ácido valproico, la lamotrigina y algunos antipsicóticos. Previenen tanto las subidas como las bajadas y se toman de forma continua, también cuando la persona está bien. Los antidepresivos se usan con cuidado y nunca solos, porque pueden desencadenar una subida. Mantener horarios regulares de sueño es parte del tratamiento.</p>
+<p>En el trastorno de personalidad límite el tratamiento principal es la psicoterapia estructurada, como la terapia dialéctico-conductual o la terapia basada en la mentalización. Enseñan a reconocer y regular las emociones, tolerar el malestar sin dañarse y relacionarse de forma más estable. Los medicamentos pueden ayudar con síntomas puntuales, como el ánimo bajo, la ansiedad o el sueño, pero no tratan el trastorno en sí. Los tranquilizantes se usan con mucha cautela, porque pueden aumentar la impulsividad.</p>
+<h2>Consideraciones importantes</h2>
+<p>No suspenda ni modifique sus medicamentos sin conversarlo con su médico: suspenderlos de golpe puede provocar una recaída o síntomas de retirada. Cuéntele a su médico si alguna vez ha tenido períodos de varios días con muy poca necesidad de dormir y mucha energía, aunque en ese momento se haya sentido bien; es un dato clave para el diagnóstico. El diagnóstico puede revisarse con el tiempo, a medida que su equipo conoce mejor cómo se comporta su ánimo. Sus familiares también pueden aportar información útil sobre cómo lo ven en los distintos períodos.</p>
+<h2>Qué esperar del tratamiento</h2>
+<p>El trastorno bipolar es una condición de largo plazo, pero con tratamiento continuo la mayoría de las personas logra estabilidad y lleva una vida plena. Respecto del trastorno de personalidad límite, durante años se pensó que no tenía tratamiento; hoy se sabe que la mayoría de las personas mejora con el tiempo, y más de la mitad deja de cumplir criterios del diagnóstico en pocos años. La impulsividad y las autolesiones suelen ser lo primero en mejorar. La sensación de vacío y las dificultades en las relaciones toman más tiempo, y en eso la psicoterapia es central.</p>
+<h2>Señales de urgencia</h2>
+<div class="aviso"><p>Consulte de inmediato en el servicio de urgencia más cercano, llame al SAMU (131) o a la línea de prevención del suicidio (*4141) si tiene ideas de quitarse la vida o de hacerse daño, si lleva varios días casi sin dormir con mucha energía, o si ve o escucha cosas que otros no perciben.</p></div>
+<p class="src">Fuentes: guía de práctica clínica de la American Psychiatric Association para trastorno de personalidad límite (2024); guías CANMAT/ISBD para trastorno bipolar (2018); Zanarini y cols., seguimiento longitudinal McLean.</p>
+''')
+
+(W / 'index.html').write_text(indice)
+(W / 'guia-tlp.html').write_text(tlp)
+(W / 'manual-familiares.html').write_text(fam)
+(W / 'bipolar-limite.html').write_text(bip)
+print('ok')
