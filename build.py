@@ -75,6 +75,7 @@ fam = page('Manual para familiares', '''
 <p class="eyebrow"><a href="index.html">Material psicoeducativo</a> · Para familiares y cuidadores</p>
 <h1>Manual para familiares (o cuidadores) de personas con trastorno de personalidad</h1>
 <p class="src">Candice Fischer, Paulina Soto y Paula Errázuriz. Escuela de Psicología UC, Fundación PsiConecta y MIDAP. Se reproduce completo; deslice para leer.</p>
+<p class="src">Obra bajo licencia <a href="https://creativecommons.org/licenses/by-nc/4.0/deed.es">Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)</a>. Original: <a href="https://midap.org/wp-content/uploads/2021/05/MANUALPSICOEDUCATIVO.pdf">midap.org</a>. Contenido sin modificaciones; páginas convertidas a imagen para leer en el celular.</p>
 ''' + imagenes('fam', 23))
 
 bip = page('Bipolar o límite', '''
